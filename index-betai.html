@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Beta-i Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: #17212F;
+    background: #E9ECF1;
+    overflow: hidden;
+  }
+  button { font-family: inherit; }
+
+  .app { display: flex; height: 100vh; height: 100dvh; }
+
+  /* Menu lateral: telas da simulação */
+  .side {
+    width: 244px; flex-shrink: 0;
+    background: #FFFFFF;
+    border-right: 1px solid #D5DAE2;
+    padding: 24px 20px;
+    display: flex; flex-direction: column; gap: 20px;
+    overflow-y: auto;
+  }
+  .side-head { display: flex; flex-direction: column; gap: 4px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5A6578; }
+  .side-title { font-size: 20px; font-weight: 700; line-height: 1.2; margin: 0; }
+  .side-sub { font-size: 13px; color: #5A6578; line-height: 1.4; margin: 0; }
+  .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .item {
+    display: flex; flex-direction: column; gap: 8px;
+    width: 100%; padding: 8px;
+    background: #FFFFFF;
+    border: 2px solid #E1E5EB; border-radius: 10px;
+    cursor: pointer; text-align: left; color: inherit;
+  }
+  .item:hover { border-color: #B9C7E4; }
+  .item:focus-visible { outline: 3px solid #1456C8; outline-offset: 2px; }
+  .item[aria-current="true"] { background: #EAF1FD; border-color: #1456C8; }
+  .thumb {
+    position: relative; width: 184px; height: 90px; overflow: hidden;
+    border: 1px solid #D5DAE2; border-radius: 4px; background: #FFFFFF;
+    pointer-events: none;
+  }
+  .thumb .frame { transform: scale(0.1278); }
+  .item-label { display: flex; align-items: center; gap: 8px; }
+  .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 11px;
+    background: #17212F; color: #FFFFFF; font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .item-title { font-size: 14px; font-weight: 600; line-height: 1.25; }
+
+  /* Palco: tela selecionada */
+  .stage {
+    flex: 1; min-width: 0;
+    padding: 28px 28px 24px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .meta { display: flex; flex-direction: column; gap: 6px; }
+  .meta h1 { margin: 0; font-size: 26px; font-weight: 700; line-height: 1.2; }
+  .meta p { margin: 0; font-size: 15px; color: #3B475A; line-height: 1.45; max-width: 860px; }
+  .area { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .wrap {
+    position: relative; overflow: hidden; flex-shrink: 0;
+    background: #FFFFFF; border: 1px solid #C9CFD9; border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(23,33,47,0.12);
+  }
+  .frame { position: absolute; left: 0; top: 0; width: 1440px; height: 704px; transform-origin: 0 0; overflow: hidden; }
+  .frame-inner { position: relative; width: 1440px; height: 704px; }
+
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+    .app { flex-direction: column; height: auto; min-height: 100vh; }
+    .side { width: 100%; border-right: none; border-bottom: 1px solid #D5DAE2; padding: 16px; gap: 14px; overflow: visible; }
+    .list { flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
+    .list li { flex: 0 0 204px; }
+    .stage { padding: 16px; }
+    .area { min-height: 260px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side" aria-label="Telas da simulação">
+    <div class="side-head">
+      <div class="eyebrow">Fundacred · Beta-i</div>
+      <h2 class="side-title">Beta-i Marketing</h2>
+      <p class="side-sub">Passo a passo das mudanças sobre os sistemas existentes</p>
+    </div>
+    <ol class="list" id="list"></ol>
+  </aside>
+
+  <main class="stage">
+    <div class="meta">
+      <div class="eyebrow" id="step"></div>
+      <h1 id="title"></h1>
+      <p id="desc"></p>
+    </div>
+    <div class="area" id="area">
+      <div class="wrap" id="wrap">
+        <div class="frame" id="frame"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Peças reutilizáveis ---------- */
+  var RED = '#C8281B';
+
+  function badge(n, extra) {
+    return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:11px;background:' + RED + ';color:#FFFFFF;font-size:12px;font-weight:700;font-family:system-ui,sans-serif;' + (extra || '') + '">' + n + '</span>';
+  }
+  function callout(n, text, pos) {
+    return '<div style="position:absolute;' + pos + ';display:flex;align-items:center;gap:8px;padding:8px 10px;box-sizing:border-box;background:#FFFFFF;border:2px solid ' + RED + ';border-radius:8px;box-shadow:0 4px 14px rgba(200,40,27,0.22);font-family:system-ui,sans-serif">' +
+      badge(n, 'flex-shrink:0') +
+      '<span style="font-size:14px;font-weight:600;color:#8F1D13;line-height:1.25">' + text + '</span></div>';
+  }
+  var CARET = '<svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><polygon points="0,0 12,0 6,8" fill="#1F2933"/></svg>';
+  var GRIP = '<svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><g fill="#1F2933"><circle cx="3" cy="4" r="2"/><circle cx="11" cy="4" r="2"/><circle cx="3" cy="11" r="2"/><circle cx="11" cy="11" r="2"/><circle cx="3" cy="18" r="2"/><circle cx="11" cy="18" r="2"/></g></svg>';
+  var INFO16 = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1456C8" stroke-width="1.3" aria-hidden="true"><circle cx="8" cy="8" r="6.8"/><path d="M8 7v4.4M8 4.6v.1" stroke-linecap="round"/></svg>';
+  var KEBAB = '<svg width="4" height="16" viewBox="0 0 4 16" aria-hidden="true"><g fill="#1456C8"><circle cx="2" cy="2" r="1.6"/><circle cx="2" cy="8" r="1.6"/><circle cx="2" cy="14" r="1.6"/></g></svg>';
+  var CARD = 'background:#FFFFFF;border:1px solid #E1E1E1;border-radius:24px;box-shadow:0 1px 5px rgba(0,0,0,0.10)';
+
+  function browserChrome() {
+    return '<div style="position:relative;z-index:6;height:84px;background:#DEE1E6">' +
+      '<div style="height:42px;display:flex;align-items:flex-end;padding:0 12px">' +
+        '<div style="position:relative;height:34px;width:232px;box-sizing:border-box;padding:0 12px;display:flex;align-items:center;gap:8px;background:#FFFFFF;border-radius:9px 9px 0 0;font-size:13px;color:#1F2933">' +
+          '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#5F6B7A" stroke-width="1.3" aria-hidden="true"><circle cx="8" cy="8" r="6.4"/><path d="M1.6 8h12.8M8 1.6c2.2 2.4 2.2 10.4 0 12.8M8 1.6c-2.2 2.4-2.2 10.4 0 12.8"/></svg>' +
+          '<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Beta-i Marketing</span>' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" stroke="#5F6B7A" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg>' +
+        '</div>' +
+      '</div>' +
+      '<div style="height:42px;box-sizing:border-box;padding:0 12px;display:flex;align-items:center;gap:12px;background:#FFFFFF;border-bottom:1px solid #D5D9DF">' +
+        '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#5F6B7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9H3M8 4L3 9l5 5"/></svg>' +
+        '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#B5BCC6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h12M10 4l5 5-5 5"/></svg>' +
+        '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#5F6B7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 9a5.5 5.5 0 1 1-1.7-4M14 2.5v3h-3"/></svg>' +
+        '<div style="flex:1;height:30px;box-sizing:border-box;padding:0 14px;display:flex;align-items:center;gap:8px;background:#EEF0F3;border-radius:15px;font-size:13px;color:#3B4450">' +
+          '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#5F6B7A" stroke-width="1.4" aria-hidden="true"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.4a2.5 2.5 0 0 1 5 0V6"/></svg>' +
+          'https://[endereço-do-módulo]' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ---------- Telas do Beta-i (1, 2, 3 e 4) ---------- */
+  function betai(o) {
+    var modal = !!o.modal;
+    var isMkt = o.page === 'marketing' || modal;
+    var show = isMkt || !!o.showMarketing;
+    var ann = !!o.annotate;
+    var note = ann && !isMkt;
+    var annLanding = isMkt && ann && !modal;
+    var annModal = modal && ann;
+
+    var inicioPad = isMkt ? '8px' : '20px';
+    var inicioBg = isMkt ? 'transparent' : '#D4E4FB';
+    var inicioColor = isMkt ? '#2B3440' : '#1456C8';
+    var markPad = isMkt ? '20px' : '10px';
+    var markRadius = isMkt ? '20px' : '8px';
+    var markColor = isMkt ? '#1456C8' : '#2B3440';
+    var markOutline = note ? '2px solid ' + RED : 'none';
+    var markFill = isMkt ? '#D4E4FB' : (note ? 'rgba(200,40,27,0.07)' : 'transparent');
+    var annOutline = annLanding ? '2px solid ' + RED : 'none';
+
+    var navItem = function (label) {
+      return '<div style="display:flex;align-items:center;gap:6px;padding:0 8px;font-size:16px;font-weight:500;color:#2B3440">' + label + CARET + '</div>';
+    };
+
+    var marketingItem = show
+      ? '<div style="position:relative">' +
+          '<div style="height:40px;box-sizing:border-box;padding:0 ' + markPad + ';display:flex;align-items:center;border-radius:' + markRadius + ';font-size:16px;font-weight:500;color:' + markColor + ';outline:' + markOutline + ';outline-offset:3px;background:' + markFill + '">Marketing</div>' +
+          (note ? callout(1, 'Novo menu: Marketing', 'top:56px;left:-4px;width:220px') : '') +
+        '</div>'
+      : '';
+
+    var header =
+      '<div style="position:relative;z-index:5;height:78px;box-sizing:border-box;display:flex;align-items:center;background:#FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,0.14);border-top:3px solid #000000">' +
+        '<div style="width:210px;height:62px;display:flex;align-items:center;justify-content:center;gap:6px;border-right:1px solid #E3E3E3">' +
+          '<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15" fill="none" stroke="#1456C8" stroke-width="7" stroke-dasharray="2 3.4"/><circle cx="8" cy="22" r="2.2" fill="#7BB026"/></svg>' +
+          '<span style="font-size:38px;font-weight:700;letter-spacing:-0.01em;color:#1456C8;line-height:1">Beta-i</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:4px;margin-left:24px">' +
+          '<div style="height:40px;padding:0 ' + inicioPad + ';display:flex;align-items:center;border-radius:20px;background:' + inicioBg + ';color:' + inicioColor + ';font-size:16px;font-weight:500">Início</div>' +
+          navItem('Análise') + navItem('Financeiro') + navItem('Satisfação') +
+          marketingItem +
+        '</div>' +
+        '<div style="margin-left:auto;display:flex;align-items:center;height:62px">' +
+          '<div style="display:flex;align-items:center;gap:10px;padding:0 28px 0 0;font-size:16px;font-weight:500;color:#2B3440">' +
+            '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2B3440" stroke-width="1.8" aria-hidden="true"><path d="M12 21s-6-5.6-6-10.5a6 6 0 0 1 12 0C18 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.2"/></svg>Região sugerida</div>' +
+          '<div style="height:62px;border-left:1px solid #E3E3E3"></div>' +
+          '<div style="display:flex;align-items:center;gap:26px;padding:0 28px">' +
+            '<svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#1456C8" stroke-width="2" aria-label="Ajuda" role="img"><circle cx="14" cy="14" r="11.5"/><path d="M10.6 11.2a3.5 3.5 0 1 1 5.2 3c-1.2.8-1.8 1.4-1.8 2.8" stroke-linecap="round"/><circle cx="14" cy="20.3" r="0.9" fill="#1456C8" stroke="none"/></svg>' +
+            '<div style="position:relative;width:28px;height:28px">' +
+              '<svg width="28" height="28" viewBox="0 0 28 28" aria-label="Notificações" role="img"><path d="M14 3.5c-4 0-6.6 3-6.6 7v4.2L5 18.4v1.6h18v-1.6l-2.4-3.7V10.5c0-4-2.6-7-6.6-7z" fill="#1456C8"/><path d="M11.5 22.5a2.6 2.6 0 0 0 5 0z" fill="#1456C8"/></svg>' +
+              '<span style="position:absolute;top:0;right:0;width:9px;height:9px;border-radius:5px;background:#E5321F"></span>' +
+            '</div>' +
+          '</div>' +
+          '<div style="height:62px;border-left:1px solid #E3E3E3"></div>' +
+          '<div style="display:flex;align-items:center;gap:12px;padding:0 28px 0 24px">' +
+            '<div style="width:40px;height:40px;border-radius:20px;background:#DADDE1;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:#3B4450">UT</div>' +
+            '<div style="display:flex;flex-direction:column;gap:1px;width:126px">' +
+              '<span style="font-size:16px;font-weight:700;color:#2B3440;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Usuário T...</span>' +
+              '<span style="font-size:13px;color:#4A5563;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Instituição de...</span>' +
+            '</div>' +
+            '<svg width="14" height="9" viewBox="0 0 12 8" aria-hidden="true"><polygon points="0,0 12,0 6,8" fill="#1F2933"/></svg>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    var content = isMkt ? landing(annLanding, annOutline) : inicio();
+    var modalHTML = modal ? contractModal(annModal) : '';
+
+    return '<div class="frame-inner" style="overflow:hidden;background:#FAF9F8;font-family:\'Figtree\',system-ui,sans-serif;color:#1F2933">' +
+      header + content + modalHTML + '</div>';
+  }
+
+  function inicio() {
+    var summary = function (icon, label, valueHTML) {
+      return '<div style="flex:1;height:74px;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:0 20px 0 14px;border:1px solid #DDDDDD;border-radius:24px;box-shadow:0 1px 4px rgba(0,0,0,0.08)">' +
+        '<div style="width:32px;height:32px;border-radius:8px;background:#E4ECFA;display:flex;align-items:center;justify-content:center">' + icon + '</div>' +
+        '<div style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-size:15px">' + label + '</span>' + valueHTML + '</div>' + KEBAB + '</div>';
+    };
+    var alertPill = function (bg, border, icon, text, n) {
+      return '<div style="flex:1;height:40px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 16px;background:' + bg + ';border:1px solid ' + border + ';border-radius:6px;font-size:15px;position:relative">' + icon + text + ' <b>' + n + '</b><span style="position:absolute;right:16px;display:flex">' + CARET + '</span></div>';
+    };
+    var bottomCard = function (label) {
+      return '<div style="flex:1;height:160px;box-sizing:border-box;padding:20px;' + CARD + ';display:flex;align-items:flex-start;justify-content:space-between">' +
+        '<div style="display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600">' + GRIP + label + INFO16 + '</div>' + KEBAB + '</div>';
+    };
+
+    return '<div style="padding:0 32px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:28px;height:42px">' +
+        '<h2 style="margin:0;font-size:31px;font-weight:700;color:#1F2933;line-height:1">Início</h2>' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="height:40px;box-sizing:border-box;padding:0 22px;display:flex;align-items:center;gap:10px;border:2px solid #1456C8;border-radius:20px;color:#1456C8;font-size:15px;font-weight:500;background:#FFFFFF">' +
+            '<svg width="18" height="4" viewBox="0 0 18 4" aria-hidden="true"><circle cx="2" cy="2" r="1.7" fill="#1456C8"/><circle cx="9" cy="2" r="1.7" fill="#1456C8"/><circle cx="16" cy="2" r="1.7" fill="#1456C8"/></svg>Mais ações</div>' +
+          '<div style="height:40px;box-sizing:border-box;padding:0 24px;display:flex;align-items:center;gap:10px;border-radius:20px;background:#1456C8;color:#FFFFFF;font-size:15px;font-weight:500">' +
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1-4L17 4l3 3L8 19z"/></svg>Editar dashboard</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:30px;border-bottom:2px solid #DADADA;display:flex">' +
+        '<div style="padding:0 16px 9px;margin-bottom:-2px;border-bottom:3px solid #1456C8;font-size:15px;font-weight:700;color:#1456C8">Presencial</div>' +
+        '<div style="padding:0 16px 9px;font-size:15px;font-weight:500;color:#4A5563">EAD</div>' +
+      '</div>' +
+      '<div style="margin-top:33px;height:143px;box-sizing:border-box;padding:20px;' + CARD + '">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between">' +
+          '<div style="display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600">' + GRIP + 'Central de alertas' + INFO16 + '</div>' +
+          '<svg width="22" height="20" viewBox="0 0 24 22" fill="none" stroke="#1456C8" stroke-width="2" stroke-linecap="round" aria-label="Ocultar" role="img"><path d="M2 11s3.8-7 10-7 10 7 10 7-3.8 7-10 7S2 11 2 11z"/><circle cx="12" cy="11" r="3"/><path d="M3 20L21 2"/></svg>' +
+        '</div>' +
+        '<div style="display:flex;gap:28px;margin-top:16px">' +
+          alertPill('#FDE9E9', '#E08E8E', '<svg width="22" height="20" viewBox="0 0 24 22" fill="none" stroke="#D62A1F" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L1.5 20h21z"/><path d="M12 9v5M12 17v.1" stroke-linecap="round"/></svg>', 'Pontos críticos:', 2) +
+          alertPill('#FEF6D5', '#E5C24D', '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#E0A800" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="9.5"/><path d="M11 10v5M11 6.8v.1" stroke-linecap="round"/></svg>', 'Pontos de atenção:', 2) +
+          alertPill('#EAF6DD', '#8DC155', '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#5FA30F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5l5 5L19 5"/></svg>', 'Pontos fortes:', 3) +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:33px;height:163px;box-sizing:border-box;padding:20px;' + CARD + '">' +
+        '<div style="display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600">' + GRIP + 'Resumo da análise</div>' +
+        '<div style="display:flex;gap:28px;margin-top:16px">' +
+          summary('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1456C8" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3 3 16 0 19M12 2.5c-3 3-3 16 0 19"/></svg>', 'Participação de mercado', '<span style="font-size:18px;font-weight:600;color:#1456C8">48,22%</span>') +
+          summary('<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g fill="#1456C8"><rect x="4" y="11" width="4" height="9" rx="1"/><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="16" y="14" width="4" height="6" rx="1"/></g></svg>', 'Participação de vendas',
+            '<span style="display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;color:#1456C8">49,02%<span style="display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:500;color:#3F7A0A"><svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="#3F7A0A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12l7-7 4 4 8-8M14 1h6v6"/></svg>Crescendo</span></span>') +
+          summary('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1456C8" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.4 2.2 3.3-.2.9 3.2 2.8 1.8-1.2 3.1 1.2 3.1-2.8 1.8-.9 3.2-3.3-.2L12 22l-2.4-2.2-3.3.2-.9-3.2-2.8-1.8 1.2-3.1-1.2-3.1 2.8-1.8.9-3.2 3.3.2z"/><path d="M12 8.5l1 2 2.2.3-1.6 1.6.4 2.2-2-1.1-2 1.1.4-2.2L8.8 10.8l2.2-.3z"/></svg>', 'Concluintes', '<span style="font-size:18px;font-weight:600;color:#1456C8">6.16%</span>') +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:33px;display:flex;gap:28px">' +
+        bottomCard('Taxa de conclusão dos cursos') + bottomCard('Origem dos alunos') + bottomCard('Eficiência operacional') +
+      '</div>' +
+    '</div>';
+  }
+
+  var BENEFITS = [
+    { title: 'Ganhe produtividade', text: 'Menos esforço operacional para consolidar e explicar resultados.', icon: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
+    { title: 'Conecte marketing à receita', text: 'Conexão entre investimento, receita e valor para o cliente.', icon: 'M3 17l6-6 4 4 8-8M15 7h6v6' },
+    { title: 'Invista com confiança', text: 'Orçamento direcionado ao que realmente gera resultado.', icon: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM8.5 12l2.5 2.5 5-5' },
+    { title: 'Entenda o resultado', text: 'Decisões mais rápidas e sustentadas por evidências.', icon: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.5-4.5' },
+    { title: 'Antecipe os movimentos', text: 'Mais previsibilidade para antecipar movimentos e corrigir a rota.', icon: 'M4 12h14M13 6l6 6-6 6' }
+  ];
+
+  function landing(annLanding, annOutline) {
+    var benefits = BENEFITS.map(function (b) {
+      return '<div style="box-sizing:border-box;padding:18px;display:flex;flex-direction:column;gap:8px;' + CARD + '">' +
+        '<div style="width:32px;height:32px;border-radius:8px;background:#E4ECFA;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1456C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + b.icon + '"/></svg></div>' +
+        '<span style="font-size:16px;font-weight:600;color:#1F2933">' + b.title + '</span>' +
+        '<span style="font-size:14px;line-height:1.45;color:#3B4450">' + b.text + '</span></div>';
+    }).join('');
+
+    var ctaBubbles = annLanding
+      ? '<div style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:236px;display:flex;flex-direction:column;gap:8px;font-family:system-ui,sans-serif">' +
+          '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#FFFFFF;border:2px solid ' + RED + ';border-radius:8px;box-shadow:0 4px 14px rgba(200,40,27,0.22)">' + badge(2, 'flex-shrink:0') + '<span style="font-size:14px;font-weight:600;color:#8F1D13;line-height:1.25">Abre o modal de contratação</span></div>' +
+          '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#FFFFFF;border:2px solid ' + RED + ';border-radius:8px;box-shadow:0 4px 14px rgba(200,40,27,0.22)">' + badge(3, 'flex-shrink:0') + '<span style="font-size:14px;font-weight:600;color:#8F1D13;line-height:1.25">Abre o módulo em nova aba</span></div>' +
+        '</div>'
+      : '';
+
+    var areaOutline = annLanding
+      ? '<div style="position:absolute;top:84px;left:12px;right:12px;bottom:12px;border:2px dashed ' + RED + ';border-radius:24px;pointer-events:none;z-index:4">' + badge(1, 'position:absolute;top:-11px;left:-11px') + '</div>'
+      : '';
+
+    return '<div style="padding:0 32px">' +
+      '<div style="position:relative;display:flex;align-items:center;margin-top:28px;height:42px">' +
+        '<h2 style="margin:0;font-size:31px;font-weight:700;color:#1F2933;line-height:1">Marketing</h2>' +
+        (annLanding ? callout(1, 'Nova área: landing do módulo de Marketing', 'top:0;left:190px') : '') +
+      '</div>' +
+      '<div style="margin-top:24px;box-sizing:border-box;padding:28px 32px;display:flex;align-items:center;gap:48px;' + CARD + '">' +
+        '<div style="flex:1;min-width:0;display:flex;flex-direction:column">' +
+          '<h3 style="margin:0;font-size:28px;font-weight:700;line-height:1.2;color:#1F2933;max-width:600px">Seus dados de marketing em um só lugar, para decidir mais rápido</h3>' +
+          '<p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:#3B4450;max-width:640px">Acompanhe o funil de mídia da sua instituição, do investimento à conversão, sem esperar o fechamento do mês.</p>' +
+          '<div style="position:relative;margin-top:24px;display:flex;align-items:center;gap:18px">' +
+            '<div style="position:relative;height:46px;box-sizing:border-box;padding:0 28px;display:flex;align-items:center;border-radius:23px;outline:' + annOutline + ';outline-offset:3px;background:#1456C8;color:#FFFFFF;font-size:16px;font-weight:600">Contratar módulo' + (annLanding ? badge(2, 'position:absolute;top:-11px;right:-11px') : '') + '</div>' +
+            '<div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:12px;color:#4A5563">Valor de aquisição</span><span style="font-size:18px;font-weight:700;color:#1F2933">[VALOR] <span style="font-size:13px;font-weight:400;color:#4A5563">por mês</span></span></div>' +
+            '<div style="position:relative;height:46px;box-sizing:border-box;padding:0 24px;margin-left:10px;display:flex;align-items:center;gap:10px;border:2px solid #1456C8;border-radius:23px;outline:' + annOutline + ';outline-offset:3px;background:#FFFFFF;color:#1456C8;font-size:16px;font-weight:600">Acessar módulo' +
+              '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1456C8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2h5v5M14 2L7.5 8.5M12 9.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3.5"/></svg>' +
+              (annLanding ? badge(3, 'position:absolute;top:-11px;right:-11px') : '') + '</div>' +
+            ctaBubbles +
+          '</div>' +
+          '<div style="margin-top:16px;display:flex;align-items:center;gap:8px;font-size:14px;color:#3B4450">' + INFO16 + 'Primeiro acesso: o módulo abre em uma nova aba e pede um novo login.</div>' +
+        '</div>' +
+        '<div style="width:380px;flex-shrink:0;box-sizing:border-box;padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#F3F6FC;border-radius:18px">' +
+          '<div style="width:100%;height:46px;display:flex;align-items:center;justify-content:center;border-radius:23px;background:#C6D7EF;font-size:15px;font-weight:500;color:#0B1F44">Awareness</div>' +
+          '<div style="width:76%;height:46px;display:flex;align-items:center;justify-content:center;border-radius:23px;background:#86ABE8;font-size:15px;font-weight:500;color:#0B1F44">Consideração</div>' +
+          '<div style="width:52%;height:46px;display:flex;align-items:center;justify-content:center;border-radius:23px;background:#1456C8;font-size:15px;font-weight:500;color:#FFFFFF">Conversão</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:24px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px">' + benefits + '</div>' +
+    '</div>' + areaOutline;
+  }
+
+  function contractModal(annModal) {
+    var row = function (label, valueHTML, last) {
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;' + (last ? '' : 'border-bottom:1px solid #DCE5F3') + '"><span style="font-size:15px;color:#1F2933">' + label + '</span>' + valueHTML + '</div>';
+    };
+    var annot = annModal
+      ? callout(1, 'Modal sobre a landing, com o cenário de custos', 'top:120px;left:calc(100% + 36px);width:250px') +
+        '<div style="position:absolute;top:148px;left:100%;width:36px;border-top:2px solid ' + RED + '"></div>' +
+        callout(2, 'Sem compra na plataforma: encaminha para a área de negócios', 'top:300px;left:calc(100% + 36px);width:250px') +
+        '<div style="position:absolute;top:330px;left:100%;width:36px;border-top:2px solid ' + RED + '"></div>'
+      : '';
+
+    return '<div style="position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(17,24,39,0.52)">' +
+      '<div style="position:relative;width:600px;box-sizing:border-box;padding:32px;background:#FFFFFF;border-radius:24px;box-shadow:0 16px 48px rgba(0,0,0,0.30)">' +
+        '<button type="button" aria-label="Fechar" style="position:absolute;top:16px;right:16px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:none;border-radius:18px;background:transparent;cursor:pointer"><svg width="16" height="16" viewBox="0 0 16 16" stroke="#4A5563" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg></button>' +
+        '<h3 style="margin:0;padding-right:40px;font-size:24px;font-weight:700;line-height:1.25;color:#1F2933">Contratar o módulo de Marketing</h3>' +
+        '<p style="margin:10px 0 0;font-size:15px;line-height:1.5;color:#3B4450">A contratação é combinada com o nosso time de negócios. Confira o cenário de custos e escolha como prefere falar com a gente.</p>' +
+        '<div style="margin-top:20px;box-sizing:border-box;padding:4px 20px;background:#F3F6FC;border-radius:16px">' +
+          row('Mensalidade do módulo', '<span style="font-size:17px;font-weight:700;color:#1F2933">[VALOR] <span style="font-size:13px;font-weight:400;color:#4A5563">por mês</span></span>') +
+          row('Implantação', '<span style="font-size:17px;font-weight:700;color:#1F2933">[VALOR]</span>') +
+          row('Serviços não incluídos, como tagueamento', '<span style="font-size:15px;font-weight:500;color:#4A5563">Cobrados à parte</span>', true) +
+        '</div>' +
+        '<div style="margin-top:22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">' +
+          '<div style="display:flex;flex-direction:column;align-items:center;gap:8px">' +
+            '<a href="#" style="width:100%;height:48px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:24px;background:#1456C8;color:#FFFFFF;font-size:16px;font-weight:600;text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.4-4.2A8.2 8.2 0 1 1 8.2 18.6z"/><path d="M9.2 8.8c0 3 2.9 6 6 6l1.3-1.4-2-1.1-.9.8c-.8-.3-1.8-1.3-2.1-2.1l.8-.9-1.1-2z"/></svg>Falar no WhatsApp</a>' +
+            '<span style="font-size:14px;color:#3B4450">[número de WhatsApp]</span>' +
+          '</div>' +
+          '<div style="display:flex;flex-direction:column;align-items:center;gap:8px">' +
+            '<a href="#" style="width:100%;height:48px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;border:2px solid #1456C8;border-radius:24px;background:#FFFFFF;color:#1456C8;font-size:16px;font-weight:600;text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1456C8" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6.5L20.5 7"/></svg>Enviar e-mail</a>' +
+            '<span style="font-size:14px;color:#3B4450">[e-mail comercial]</span>' +
+          '</div>' +
+        '</div>' +
+        annot +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ---------- Tela 5: login do módulo ---------- */
+  function modulo(ann) {
+    return '<div class="frame-inner" style="overflow:hidden;background:#FFFFFF;font-family:system-ui,-apple-system,\'Segoe UI\',sans-serif;color:#1F2933">' +
+      browserChrome() +
+      '<div style="position:relative;height:620px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#F7F7F6 0%,#E7E9EC 46%,#BCD3F1 100%);font-family:\'Outfit\',system-ui,sans-serif">' +
+        '<div style="width:315px;box-sizing:border-box;padding:31px 31px 43px;display:flex;flex-direction:column;background:#F0F0EE;border:1px solid #C4C9D1;box-shadow:0 2px 12px rgba(60,70,85,0.10)">' +
+          '<div style="position:relative;width:253px;height:40px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border:' + (ann ? '2px dashed ' + RED : '1px dashed #B5BCC6') + ';background:' + (ann ? 'rgba(200,40,27,0.07)' : 'transparent') + ';font-size:15px;font-weight:600;letter-spacing:0.04em;color:' + (ann ? RED : '#7A8493') + '">Logo IE' + (ann ? badge(1, 'position:absolute;top:-11px;right:-11px') : '') + '</div>' +
+          '<div style="margin-top:18px;height:41px;box-sizing:border-box;padding:0 12px;display:flex;align-items:center;background:#FFFFFF;border:1px solid #D9D9D9;border-radius:6px;font-size:15px;color:#6B7686">E-mail</div>' +
+          '<div style="margin-top:14px;height:41px;box-sizing:border-box;padding:0 12px;display:flex;align-items:center;justify-content:space-between;background:#FFFFFF;border:1px solid #D9D9D9;border-radius:6px;font-size:15px;color:#6B7686">Senha<svg width="20" height="14" viewBox="0 0 24 16" fill="none" stroke="#8B97A8" stroke-width="1.6" aria-hidden="true"><path d="M1.5 8S5.5 1.5 12 1.5 22.5 8 22.5 8 18.5 14.5 12 14.5 1.5 8 1.5 8z"/><circle cx="12" cy="8" r="3"/></svg></div>' +
+          '<div style="margin-top:14px;text-align:right;font-size:15px;color:#5A6270;line-height:20px">Esqueceu a senha?</div>' +
+          '<div style="margin-top:14px;height:41px;display:flex;align-items:center;justify-content:center;background:#B7CFF0;border-radius:6px;font-size:16px;font-weight:500;color:#0B1220">Entrar</div>' +
+        '</div>' +
+        (ann ? callout(1, 'Whitelabel: inserção da identidade/logo da Instituição de Ensino', 'top:187px;left:252px;width:270px') +
+               '<div style="position:absolute;top:206px;left:522px;width:72px;border-top:2px solid ' + RED + '"></div>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ---------- Tela 6: módulo aberto (pós-login) ---------- */
+  var ROWS = [
+    { label: 'Investimento', sub: 'Valor investido por estratégia', w: '95%', fill: '#F9EFD0', v: ['R$ 1.035.948', 'R$ 422.376', 'R$ 320.375'] },
+    { label: 'Impressões', sub: 'Quantas vezes o anúncio foi exibido', w: '87%', fill: '#EBE0D3', v: ['489 Mi', '94 Mi', '28 Mi'] },
+    { label: 'Cliques', sub: 'Total de cliques recebidos', w: '70%', fill: '#DED2D6', v: ['1 Mi', '173 Mil', '520 Mil'] },
+    { label: 'Sessões', sub: 'Visitas geradas no site', w: '61%', fill: '#CDC7DC', v: ['403 Mil', '11 Mil', '83 Mil'] },
+    { label: 'Conversões', sub: 'Ações completadas no site', w: '52%', fill: '#C0B8E0', v: ['26 Mil', '75 Mil', '265 Mil'] }
+  ];
+  var TABS = ['Overview', 'Awareness', 'Consideração', 'Conversão', 'Tráfego pago', 'Tráfego não pago', 'Glossário'];
+  var GRID = 'display:grid;grid-template-columns:230px repeat(3,minmax(0,1fr));align-items:center';
+
+  function interno(ann) {
+    var rows = ROWS.map(function (r) {
+      var cells = r.v.map(function (v) {
+        return '<div style="display:flex;align-items:center;justify-content:center"><div style="width:' + r.w + ';height:44px;display:flex;align-items:center;justify-content:center;border-radius:22px;background:' + r.fill + ';font-size:19px;font-weight:400;color:#1F2933">' + v + '</div></div>';
+      }).join('');
+      return '<div style="' + GRID + ';height:62px;background:#F7F7F8;border-radius:14px">' +
+        '<div style="padding-left:16px;display:flex;flex-direction:column;gap:2px"><span style="font-size:17px;font-weight:500">' + r.label + '</span><span style="font-size:12px;font-style:italic;font-weight:300;color:#2B3440">' + r.sub + '</span></div>' + cells + '</div>';
+    }).join('');
+
+    var tabs = TABS.map(function (t, i) {
+      return '<div style="display:flex;align-items:center;padding:0 14px;border-right:1px solid #D5D7DB;background:' + (i === 0 ? '#FFFFFF' : 'transparent') + ';font-weight:' + (i === 0 ? 500 : 400) + ';border-bottom:' + (i === 0 ? '3px solid #1F6F54' : '3px solid transparent') + ';color:#1F2933">' + t + '</div>';
+    }).join('');
+
+    var sideIcon = function (inner, active) {
+      return '<div style="width:47px;height:47px;display:flex;align-items:center;justify-content:center;' + (active ? 'background:#F0F2F6;border-radius:10px' : '') + '">' + inner + '</div>';
+    };
+    var link = '<div style="text-align:center;text-decoration:underline;color:#5A4E8A">Ver detalhe ▸</div>';
+
+    return '<div class="frame-inner" style="overflow:hidden;background:#FFFFFF;font-family:system-ui,-apple-system,\'Segoe UI\',sans-serif;color:#1F2933">' +
+      browserChrome() +
+      '<div style="position:relative;height:620px;box-sizing:border-box;background:#F0F2F6;font-family:\'Outfit\',system-ui,sans-serif;color:#2B3440;overflow:hidden">' +
+        '<div style="height:56px;box-sizing:border-box;display:flex;align-items:center;background:#C6D7EF;padding:0 16px 0 27px">' +
+          '<svg width="24" height="20" viewBox="0 0 24 20" fill="none" stroke="#2B3440" stroke-width="2.4" stroke-linecap="round" aria-label="Menu" role="img"><path d="M2 4h20M2 10h20M2 16h20"/></svg>' +
+          '<div style="position:relative;margin-left:42px;width:184px;height:34px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border:' + (ann ? '2px dashed ' + RED : '1px dashed #8A93A1') + ';background:' + (ann ? 'rgba(200,40,27,0.07)' : 'transparent') + ';font-size:14px;font-weight:600;letter-spacing:0.04em;color:' + (ann ? RED : '#5A6270') + '">Logo IE' + (ann ? badge(1, 'position:absolute;top:-11px;right:-11px') : '') + '</div>' +
+          '<div style="margin-left:auto;display:flex;align-items:center;gap:20px;font-size:15px;color:#2B3440">' +
+            '<div style="display:flex;align-items:center;gap:6px"><svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="#2B3440" stroke-width="1.6" aria-hidden="true"><path d="M3 20V5l9-3v18M12 20h7V9l-7-2M3 20h16"/><path d="M6.5 8h2M6.5 12h2M6.5 16h2M15 12h1.5M15 16h1.5" stroke-linecap="round"/></svg>Nome da IE</div>' +
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2B3440" stroke-width="1.7" stroke-linejoin="round" aria-label="Notificações" role="img"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/></svg>' +
+            '<div style="height:36px;border-left:1px solid #9DB3D4"></div>' +
+            '<span style="font-size:17px;padding:0 4px">F</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;height:564px">' +
+          '<div style="width:71px;flex-shrink:0;box-sizing:border-box;padding:20px 12px;background:#C6D7EF;display:flex;flex-direction:column;gap:6px;align-items:center">' +
+            sideIcon('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F2933" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" aria-label="Início" role="img"><path d="M3 11l9-8 9 8M5.5 9.5V20h13V9.5M10 20v-6h4v6"/></svg>') +
+            sideIcon('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F2933" stroke-width="2.2" stroke-linejoin="round" aria-label="Painéis" role="img"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="3" y="16" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/></svg>', true) +
+            sideIcon('<svg width="24" height="24" viewBox="0 0 24 24" aria-label="Relatórios" role="img"><g fill="#1F2933"><rect x="3" y="11" width="4.5" height="10" rx="1"/><rect x="9.8" y="3" width="4.5" height="18" rx="1"/><rect x="16.5" y="14" width="4.5" height="7" rx="1"/></g></svg>') +
+            sideIcon('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round" aria-label="Suporte" role="img"><path d="M4 16v-4a8 8 0 0 1 16 0v4"/><path d="M4 14h3v5H5a1 1 0 0 1-1-1zM20 14h-3v5h2a1 1 0 0 0 1-1z"/><path d="M12 12v.1"/></svg>') +
+          '</div>' +
+          '<div style="flex:1;min-width:0;display:flex;flex-direction:column">' +
+            '<div style="flex:1;min-height:0;overflow:hidden;box-sizing:border-box;padding:18px 40px 0 32px;font-family:\'Ubuntu\',system-ui,sans-serif;color:#1F2933">' +
+              '<h2 style="margin:0;font-size:38px;font-weight:300;line-height:1.15">Estratégias de Funil</h2>' +
+              '<div style="margin-top:2px;font-size:14px;font-style:italic;font-weight:300;color:#2B3440">Visualize os resultados de mídia segmentados por etapa do funil</div>' +
+              '<div style="margin-top:20px;' + GRID + ';height:24px;font-size:17px;font-weight:500"><div></div><div style="text-align:center">Awareness</div><div style="text-align:center">Consideração</div><div style="text-align:center">Conversão</div></div>' +
+              '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">' + rows + '</div>' +
+              '<div style="margin-top:10px;' + GRID + ';height:22px;font-size:14px;font-weight:500"><div></div>' + link + link + link + '</div>' +
+              '<div style="margin-top:12px;border-top:1px solid #CFD2D6"></div>' +
+            '</div>' +
+            '<div style="height:30px;flex-shrink:0;display:flex;align-items:stretch;background:#F7F7F8;border-top:1px solid #D5D7DB;font-family:\'Ubuntu\',system-ui,sans-serif;font-size:12px;color:#2B3440">' +
+              '<div style="width:46px;display:flex;align-items:center;justify-content:center;gap:10px"><svg width="6" height="9" viewBox="0 0 6 9" aria-hidden="true"><polygon points="6,0 6,9 0,4.5" fill="#6B7480"/></svg><svg width="6" height="9" viewBox="0 0 6 9" aria-hidden="true"><polygon points="0,0 0,9 6,4.5" fill="#6B7480"/></svg></div>' +
+              tabs +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        (ann ? callout(1, 'Whitelabel: inserção da identidade/logo da Instituição de Ensino', 'top:5px;left:300px;width:330px') : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ---------- Definição das telas ---------- */
+  var SCREENS = [
+    { title: 'Beta-i hoje',
+      desc: 'Ponto de partida: o Beta-i como está hoje, sem nenhuma alteração. Serve de referência para as próximas telas.',
+      render: function () { return betai({ page: 'inicio' }); } },
+    { title: 'Novo menu "Marketing"',
+      desc: 'O canal Beta-i ganha um novo item no menu principal. É a porta de entrada para o módulo de Marketing.',
+      render: function () { return betai({ page: 'inicio', showMarketing: true, annotate: true }); } },
+    { title: 'Landing do módulo',
+      desc: 'Ao clicar em "Marketing", abre uma tela de apresentação do módulo, com dois caminhos: contratar ou acessar.',
+      render: function () { return betai({ page: 'marketing', showMarketing: true, annotate: true }); } },
+    { title: 'Modal de contratação',
+      desc: 'Ao clicar em "Contratar módulo", abre uma janela com o cenário de custos e os canais de contato com a área de negócios.',
+      render: function () { return betai({ page: 'marketing', showMarketing: true, annotate: true, modal: true }); } },
+    { title: 'Módulo de Marketing (outra URL)',
+      desc: 'O CTA de acesso leva o usuário a outro endereço, em uma nova aba. Ali ele entra no módulo de Marketing.',
+      render: function () { return modulo(true); } },
+    { title: 'Módulo aberto (pós-login)',
+      desc: 'Depois do login, o usuário chega ao módulo de Marketing, com a identidade visual da IE.',
+      render: function () { return interno(true); } }
+  ];
+
+  /* ---------- Visualizador ---------- */
+  var list = document.getElementById('list');
+  var frame = document.getElementById('frame');
+  var wrap = document.getElementById('wrap');
+  var area = document.getElementById('area');
+  var current = 0;
+  var items = [];
+
+  function asThumb(html) {
+    // Miniaturas não recebem foco: botões e links viram elementos neutros.
+    return html
+      .replace(/<button\b/g, '<span').replace(/<\/button>/g, '</span>')
+      .replace(/<a\b/g, '<span').replace(/<\/a>/g, '</span>');
+  }
+
+  SCREENS.forEach(function (s, i) {
+    var li = document.createElement('li');
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'item';
+    btn.innerHTML =
+      '<div class="thumb" aria-hidden="true"><div class="frame">' + asThumb(s.render()) + '</div></div>' +
+      '<div class="item-label"><span class="num">' + (i + 1) + '</span><span class="item-title">' + s.title.replace(/"/g, '&quot;') + '</span></div>';
+    btn.addEventListener('click', function () { select(i, true); });
+    li.appendChild(btn);
+    list.appendChild(li);
+    items.push(btn);
+  });
+
+  function fit() {
+    var w = area.clientWidth, h = area.clientHeight;
+    var s = Math.min(w / 1440, h / 704, 1);
+    if (!isFinite(s) || s <= 0) s = 0.1;
+    wrap.style.width = Math.round(1440 * s) + 'px';
+    wrap.style.height = Math.round(704 * s) + 'px';
+    frame.style.transform = 'scale(' + s + ')';
+  }
+
+  function select(i, push) {
+    if (i < 0 || i >= SCREENS.length) return;
+    current = i;
+    var s = SCREENS[i];
+    frame.innerHTML = s.render();
+    document.getElementById('step').textContent = 'Tela ' + (i + 1) + ' de ' + SCREENS.length;
+    document.getElementById('title').textContent = s.title;
+    document.getElementById('desc').textContent = s.desc;
+    items.forEach(function (b, k) {
+      if (k === i) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+    });
+    if (push) { try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {} }
+    fit();
+  }
+
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(area);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { select(Math.min(current + 1, SCREENS.length - 1), true); e.preventDefault(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { select(Math.max(current - 1, 0), true); e.preventDefault(); }
+  });
+
+  window.addEventListener('hashchange', function () {
+    var n = parseInt(location.hash.replace('#', ''), 10);
+    if (n >= 1 && n <= SCREENS.length) select(n - 1, false);
+  });
+
+  var start = parseInt(location.hash.replace('#', ''), 10);
+  select(start >= 1 && start <= SCREENS.length ? start - 1 : 0, false);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
+</body>
+</html>
