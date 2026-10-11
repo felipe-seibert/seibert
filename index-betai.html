@@ -28,7 +28,7 @@
     border-right: 1px solid #D5DAE2;
     padding: 24px 20px;
     display: flex; flex-direction: column; gap: 20px;
-    overflow-y: auto;
+    overflow-y: auto; scrollbar-gutter: stable;
   }
   .side-head { display: flex; flex-direction: column; gap: 4px; }
   .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5A6578; }
@@ -46,11 +46,10 @@
   .item:focus-visible { outline: 3px solid #1456C8; outline-offset: 2px; }
   .item[aria-current="true"] { background: #EAF1FD; border-color: #1456C8; }
   .thumb {
-    position: relative; width: 184px; height: 90px; overflow: hidden;
+    position: relative; width: 100%; aspect-ratio: 1440 / 704; overflow: hidden;
     border: 1px solid #D5DAE2; border-radius: 4px; background: #FFFFFF;
     pointer-events: none;
   }
-  .thumb .frame { transform: scale(0.1278); }
   .item-label { display: flex; align-items: center; gap: 8px; }
   .num {
     display: inline-flex; align-items: center; justify-content: center;
@@ -512,7 +511,16 @@
     items.push(btn);
   });
 
+  function fitThumbs() {
+    items.forEach(function (b) {
+      var t = b.querySelector('.thumb');
+      var w = t.clientWidth;
+      if (w > 0) t.firstChild.style.transform = 'scale(' + (w / 1440) + ')';
+    });
+  }
+
   function fit() {
+    fitThumbs();
     var w = area.clientWidth, h = area.clientHeight;
     var s = Math.min(w / 1440, h / 704, 1);
     if (!isFinite(s) || s <= 0) s = 0.1;
